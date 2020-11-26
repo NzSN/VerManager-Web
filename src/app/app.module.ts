@@ -15,7 +15,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTableModule } from '@angular/material/table';
 
 @NgModule({
     declarations: [
@@ -38,7 +40,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
         MatInputModule,
         MatSelectModule,
         MatGridListModule,
-        MatToolbarModule
+        MatToolbarModule,
+        MatSidenavModule,
+        MatDividerModule,
+        MatTableModule
     ],
     providers: [],
     bootstrap: [AppComponent]

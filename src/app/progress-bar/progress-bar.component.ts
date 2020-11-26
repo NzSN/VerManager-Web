@@ -12,6 +12,15 @@ interface Job {
     tasks: { [index: string]: Task };
 }
 
+interface Job_flat {
+    jobid: string;
+    tasks: Task[];
+}
+
+const JobInfors: Job[] = [
+    { "jobid": "Job", "tasks": { "T": { "taskid": "T1", "state": "P" } } }
+];
+
 
 @Component({
     selector: 'app-progress-bar',
@@ -21,6 +30,8 @@ interface Job {
 export class ProgressBarComponent implements OnInit {
 
     jobs: { [index: string]: Job } = {};
+    jobSource = JobInfors;
+    columnDisplay = ['Job', 'Tasks'];
 
     constructor(msg_service: MessageService) {
         msg_service.register("JobMsg").subscribe(msg => {
@@ -59,14 +70,36 @@ export class ProgressBarComponent implements OnInit {
 
     }
 
-    job_state_message_info_handle(msg: Message): void {
-        let content = msg['content']['message'];
+    get_jobs(): Job_flat[] {
+        let job_flats: Job_flat[] = [];
 
-        // Create jobs from info in message.
-        for (let jobid in content) {
-            let job = { "jobid": jobid, tasks: content[jobid] };
-            this.jobs[jobid] = job;
+        for (let job of Object.values(this.jobs)) {
+            let job_f: Job_flat = {
+                "jobid": job.jobid,
+                "tasks": Object.values(job.tasks)
+            };
+            job_flats.push(job_f);
         }
+
+        return job_flats;
+    }
+
+    job_state_message_info_handle(msg: Message): void {
+        let message: { [index: string]: any } = msg['content']['message'];
+
+        // Build Task dictionary.
+        let tasks: { [index: string]: Task } = {};
+        for (let taskid of message["tasks"]) {
+            tasks[taskid] = { "taskid": taskid, "state": message["state"] };
+        }
+
+        // Build Job.
+        let job: Job = {
+            "jobid": message['jobid'],
+            "tasks": tasks
+        };
+
+        this.jobs[message['jobid']] = job;
     }
 
     job_state_message_change_handle(msg: Message): void {

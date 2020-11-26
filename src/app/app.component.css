@@ -7,9 +7,9 @@ h1 {
 .GenPanel {
     display: grid;
     width: 25cm;
-    grid-template-rows: 3cm 30cm;
+    grid-template-rows: 2cm 8cm 20cm;
     grid-template-colums: repeat(10, 2cm);
-    margin-left: auto;
+    margin-left: 10%;
     margin-right: auto;
 }
 
@@ -24,5 +24,12 @@ app-ver-gen {
     grid-row-start: 2;
     grid-column-start: 5;
     grid-column-end: 8;
+    padding: 1em;
+}
+
+app-progress-bar {
+    grid-row-start: 3;
+    grid-column-start: 5;
+    grid-column-end: 10;
     padding: 1em;
 }

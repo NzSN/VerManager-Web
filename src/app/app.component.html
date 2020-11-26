@@ -1,8 +1,15 @@
 <navbar-row></navbar-row>
-<div>
-  <div class="GenPanel">
-    <app-ver-register></app-ver-register>
-    <app-ver-gen></app-ver-gen>
-  </div>
-  <app-progress-bar></app-progress-bar>
-</div>
+<mat-drawer-container>
+  <mat-drawer mode="side" opened>
+    SideBar
+  </mat-drawer>
+  <mat-drawer-content>
+    <div>
+      <div class="GenPanel">
+        <app-ver-register></app-ver-register>
+        <app-ver-gen></app-ver-gen>
+        <app-progress-bar></app-progress-bar>
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

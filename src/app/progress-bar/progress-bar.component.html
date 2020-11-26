@@ -1,4 +1,14 @@
-<div id="ProgressBar" class="mat-elevation-z5">
+<div id="ProgressBar" class="mat-elevation-z1">
   <h3>ProgressBar</h3>
-  <p>{{jobs}}</p>
+
+  <mat-divider></mat-divider>
+  <div class="ProgressContent">
+    <mat-list role="list">
+      <mat-list-item role="listitem" *ngFor="let job of get_jobs()">
+        {{job.jobid}}
+        <p *ngFor="let t of job.tasks">{{t.taskid}}</p>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
 </div>
