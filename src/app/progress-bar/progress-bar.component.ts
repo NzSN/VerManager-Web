@@ -86,6 +86,12 @@ export class ProgressBarComponent implements OnInit {
 
     job_state_message_info_handle(msg: Message): void {
         let message: { [index: string]: any } = msg['content']['message'];
+        if (typeof message == 'undefined')
+            return
+
+        // Treat as a trivial job just drop it.
+        if (message["tasks"].length == 0)
+            return;
 
         // Build Task dictionary.
         let tasks: { [index: string]: Task } = {};
@@ -104,23 +110,28 @@ export class ProgressBarComponent implements OnInit {
 
     job_state_message_change_handle(msg: Message): void {
         let content = msg['content']['message'];
-        let jobid: string = content['jobid'];
-        let taskid: string = content['taskid'];
-        let state: string = content['state'];
 
-        this.jobs[jobid].tasks[taskid].state = state;
+        let job = this.jobs[content['jobid']];
+        if (typeof job == 'undefined')
+            return;
+
+        let task = job.tasks[content['taskid']];
+        if (typeof task == 'undefined')
+            return;
+
+        task.state = content['state'];
     }
 
     job_state_message_fin_handle(msg: Message): void {
         let content = msg['content']['message'];
-        let jobid: string = content['jobid'];
+        let jobid: string = content['jobs'][0];
 
         delete this.jobs[jobid]
     }
 
     job_state_message_fail_handle(msg: Message): void {
         let content = msg['content']['message'];
-        let jobid: string = content['jobid'];
+        let jobid: string = content['jobs'][0];
 
         delete this.jobs[jobid]
 

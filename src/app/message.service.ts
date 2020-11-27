@@ -27,6 +27,10 @@ class MessageQueue {
     pop(): Message {
         return this.data.pop();
     }
+
+    shift(): Message {
+        return this.data.shift();
+    }
 }
 
 @Injectable({
@@ -49,7 +53,6 @@ export class MessageService {
     constructor(sock: ChannelService) {
         sock.create(this.sock_url).subscribe(
             msg => {
-
                 if (message_check(msg) === false) {
                     // invalid message
                     return;
@@ -87,7 +90,7 @@ export class MessageService {
             setInterval(() => {
                 let q: MessageQueue = this.msg_queues[msg_type];
                 while (!q.isEmpty()) {
-                    msg_receiver.next(q.pop());
+                    msg_receiver.next(q.shift());
                 }
             }, 3000);
         });

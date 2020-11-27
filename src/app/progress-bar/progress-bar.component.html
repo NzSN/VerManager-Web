@@ -6,7 +6,7 @@
     <mat-list role="list">
       <mat-list-item role="listitem" *ngFor="let job of get_jobs()">
         {{job.jobid}}
-        <p *ngFor="let t of job.tasks">{{t.taskid}}</p>
+        <p *ngFor="let t of job.tasks">{{t.taskid}}{{t.state}}</p>
       </mat-list-item>
     </mat-list>
   </div>
