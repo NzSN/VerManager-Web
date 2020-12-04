@@ -34,7 +34,7 @@ export class ProgressBarComponent implements OnInit {
     columnDisplay = ['Job', 'Tasks'];
 
     constructor(msg_service: MessageService) {
-        msg_service.register("JobMsg").subscribe(msg => {
+        msg_service.register("job.msg").subscribe(msg => {
             this.job_state_message_handle(msg);
         });
     }
@@ -95,8 +95,8 @@ export class ProgressBarComponent implements OnInit {
 
         // Build Task dictionary.
         let tasks: { [index: string]: Task } = {};
-        for (let taskid of message["tasks"]) {
-            tasks[taskid] = { "taskid": taskid, "state": message["state"] };
+        for (let task of message["tasks"]) {
+            tasks[task[0]] = { "taskid": task[0], "state": task[1] };
         }
 
         // Build Job.
