@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Message, message_check } from './message';
 import { ChannelService } from "./channel.service";
+import { Channel } from "./channel";
 
 
 
@@ -39,7 +40,6 @@ class MessageQueue {
 export class MessageService {
 
     private sock_url = "ws://localhost:8000/commu/";
-    private socket: any = null;
 
     /**
      * With Help of msg_queues MessageService able to
@@ -49,10 +49,14 @@ export class MessageService {
      *  ---- message ---> MessageService ---> queue ---> component
      */
     private msg_queues: { [index: string]: MessageQueue } = {};
+    private channel: Channel<Object>;
 
-    constructor(sock: ChannelService) {
-        sock.create(this.sock_url).subscribe(
-            msg => {
+    constructor(private channelService: ChannelService) {
+        this.channel = this.channelService.create(this.sock_url);
+
+        this.channel.subscribe({
+            next: msg => {
+
                 if (message_check(msg) === false) {
                     // invalid message
                     return;
@@ -70,13 +74,13 @@ export class MessageService {
                     this.msg_queues[message.type].push(message);
                 }
             },
-            err => {
+            error: err => {
                 console.log(err);
             },
-            () => {
+            complete: () => {
                 console.log("complete");
             }
-        );
+        });
     }
 
     register(msg_type: string): Observable<Message> | null {
@@ -96,4 +100,7 @@ export class MessageService {
         });
     }
 
+    sendMsg(msg: Message): void {
+        this.channel.sendMsg(msg);
+    }
 }

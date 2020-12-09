@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { Observable, Subject } from 'rxjs';
+import { Channel } from './channel';
+
 
 @Injectable({
     providedIn: 'root'
@@ -10,19 +11,19 @@ export class ChannelService {
     private channels: { [index: string]: WebSocketSubject<Object> } = {};
     constructor() { }
 
-    create(url: string): Observable<Object> {
-        let channel: WebSocketSubject<Object>;
+    create(url: string): Channel<Object> {
+        let socket: WebSocketSubject<Object>;
 
         if (typeof this.channels[url] == 'undefined') {
             // New channel
-            channel = webSocket(url);
-            this.channels[url] = channel;
+            socket = webSocket(url);
+            this.channels[url] = socket;
         } else {
             // Exist channel
-            channel = this.channels[url];
+            socket = this.channels[url];
         }
 
-        return channel;
+        return new Channel<Object>(socket);
     }
 
     close(url: string): void {
