@@ -18,6 +18,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
+import { JobHistoryComponent } from './job-history/job-history.component';
+import { JobFilesComponent } from './job-files/job-files.component';
 
 @NgModule({
     declarations: [
@@ -26,7 +28,9 @@ import { MatTableModule } from '@angular/material/table';
         VerRegisterComponent,
         RegisterDialog,
         ProgressBarComponent,
-        NavrowComponent
+        NavrowComponent,
+        JobHistoryComponent,
+        JobFilesComponent
     ],
     imports: [
         BrowserModule,
