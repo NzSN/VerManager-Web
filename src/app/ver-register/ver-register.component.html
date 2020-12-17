@@ -1,5 +1,7 @@
 <div id="RegPanel" class="mat-elevation-z2">
   <h3 class="registerTitle">Version Register</h3>
+  <mat-divider></mat-divider>
+
   <mat-action-list id="revList" (scroll)="onScroll($event)">
     <mat-list *ngFor="let revision of revisions" class="mat-elevation-z2">
       <button class="revButton" (click)="register(revision.sn)">

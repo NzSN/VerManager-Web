@@ -1,0 +1,49 @@
+#JobHistory {
+    padding: 10px;
+    border-radius: 4px;
+    border-style: none;
+    border-width: 3px;
+    height: 10cm;
+    width: 40em;
+}
+
+mat-list {
+    overflow: auto;
+    height: 8cm;
+}
+
+mat-list-item {
+    margin: .5em;
+}
+
+.Uid {
+    width: 3cm;
+    padding: 1em 2em 1em 0.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #eee;
+}
+
+.Jobid {
+    width: 5cm;
+    padding: 1em 3em 1em 1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #eee;
+}
+
+.Tasks {
+    display: flex;
+    flex-direction: row;
+}
+
+.Task {
+    width: 6em;
+    padding: 1em 1em 1em 0.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #eee;
+}

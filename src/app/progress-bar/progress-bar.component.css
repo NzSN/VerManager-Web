@@ -3,8 +3,15 @@
     border-radius: 4px;
     border-style: none;
     border-width: 3px;
+    height: 10cm;
 }
+
 #ProgressContent {
     display: flex;
     flex-direction: column;
+}
+
+mat-list {
+    height: 8cm;
+    overflow: auto;
 }

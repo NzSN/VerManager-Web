@@ -1,1 +1,20 @@
-<p>job-history works!</p>
+<div id="JobHistory" class="mat-elevation-z1">
+  <h3>History</h3>
+  <mat-divider></mat-divider>
+
+  <div class="HistoryContent">
+    <mat-list role="list">
+      <mat-list-item class="Historyrow" role="listitem" *ngFor="let job of history">
+        <span class="Uid">{{job.unique_id}}</span>
+        <span class="Jobid">{{job.jobid}}</span>
+        <div class="Tasks">
+          <p class="Task" *ngFor="let t of job_tasks(job)"
+             [ngStyle]="{ 'color': is_task_success(t) ? 'green' : (is_task_fail(t) ? 'red' : 'yellow') }">
+            {{t.taskid}}
+          </p>
+        </div>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
+</div>

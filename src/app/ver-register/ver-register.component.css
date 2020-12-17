@@ -9,7 +9,6 @@ mat-action-list {
     margin: 0 0 2em 0;
     list-style-type: none;
     padding: 0;
-    width: 38em;
     max-height: 35em;
     overflow: auto;
 }
@@ -22,7 +21,6 @@ mat-action-list {
     padding: .3em 0;
     height: 1.6em;
     border-radius: 4px;
-    min-width: 35em;
 }
 
 #revList mat-list:hover {

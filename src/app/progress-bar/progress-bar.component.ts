@@ -1,24 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from '../message.service';
 import { Message, QueryEvent } from '../message';
+import { Job, Task } from '../job';
 
-interface Task {
-    taskid: string;
-    state: string;
-}
-
-interface Job {
-    jobid: string;
-    tasks: { [index: string]: Task };
-}
 
 interface Job_flat {
+    unique_id: string;
     jobid: string;
     tasks: Task[];
 }
 
 const JobInfors: Job[] = [
-    { "jobid": "Job", "tasks": { "T": { "taskid": "T1", "state": "P" } } }
+    {
+        "unique_id": "uid",
+        "jobid": "Job",
+        "tasks": {
+            "T": {
+                "taskid": "T1", "state": "P"
+            }
+        }
+    }
 ];
 
 
@@ -44,24 +45,24 @@ export class ProgressBarComponent implements OnInit {
         /**
          * Query current state from Master.
          */
-        this.msg_service.sendMsg(new QueryEvent([]));
+        this.msg_service.sendMsg(new QueryEvent(["processing"]));
 
-        let subscribtion = this.msg_service.register("job.msg.batch").subscribe(init_msg => {
-            console.log(init_msg);
+        let subscribtion = this.msg_service.register("job.msg.batch")
+            .subscribe(init_msg => {
 
-            // Subtype of message must a batch
-            if (init_msg.content.subtype != "batch") {
-                console.log("ProgressBar init: receive error message");
-            } else {
-                // Correct message type
-                for (let msg of init_msg.content.message) {
-                    this.job_state_message_handle_internal(msg);
+                // Subtype of message must a batch
+                if (init_msg.content.subtype != "batch") {
+                    console.log("ProgressBar init: receive error message");
+                } else {
+                    // Correct message type
+                    for (let msg of init_msg.content.message) {
+                        this.job_state_message_handle_internal(msg);
+                    }
+
+                    subscribtion.unsubscribe();
+                    this.notify_allow = true;
                 }
-
-                subscribtion.unsubscribe();
-                this.notify_allow = true;
-            }
-        });
+            });
     }
 
     job_state_message_handle(msg: Message): void {
@@ -77,8 +78,6 @@ export class ProgressBarComponent implements OnInit {
     job_state_message_handle_internal(msg: Message): void {
         let content = msg.content;
         let subtype: string;
-
-        console.log(msg);
 
         // Corrupted by invalid format of message is
         // not allowed.
@@ -110,6 +109,7 @@ export class ProgressBarComponent implements OnInit {
 
         for (let job of Object.values(this.jobs)) {
             let job_f: Job_flat = {
+                "unique_id": job.unique_id,
                 "jobid": job.jobid,
                 "tasks": Object.values(job.tasks)
             };
@@ -136,17 +136,18 @@ export class ProgressBarComponent implements OnInit {
 
         // Build Job.
         let job: Job = {
+            "unique_id": message['unique_id'],
             "jobid": message['jobid'],
             "tasks": tasks
         };
 
-        this.jobs[message['jobid']] = job;
+        this.jobs[message['unique_id']] = job;
     }
 
     job_state_message_change_handle(msg: Message): void {
         let content = msg['content']['message'];
 
-        let job = this.jobs[content['jobid']];
+        let job = this.jobs[content['unique_id']];
         if (typeof job == 'undefined')
             return;
 
@@ -159,16 +160,16 @@ export class ProgressBarComponent implements OnInit {
 
     job_state_message_fin_handle(msg: Message): void {
         let content = msg['content']['message'];
-        let jobid: string = content['jobs'][0];
+        let unique_id: string = content['jobs'][0];
 
-        delete this.jobs[jobid]
+        delete this.jobs[unique_id];
     }
 
     job_state_message_fail_handle(msg: Message): void {
         let content = msg['content']['message'];
-        let jobid: string = content['jobs'][0];
+        let unique_id: string = content['jobs'][0];
 
-        delete this.jobs[jobid]
+        delete this.jobs[unique_id];
 
     }
 }

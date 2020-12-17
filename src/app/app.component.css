@@ -6,30 +6,39 @@ h1 {
 
 .GenPanel {
     display: grid;
-    width: 25cm;
-    grid-template-rows: 2cm 8cm 20cm;
-    grid-template-colums: repeat(10, 2cm);
-    margin-left: 10%;
+    width: 41cm;
+    grid-template-rows: 3cm 8cm 3cm 20cm;
+    grid-template-colums: repeat(41, 1em);
+    margin-left: auto;
     margin-right: auto;
 }
 
 app-ver-register {
     grid-row-start: 2;
     grid-column-start: 1;
-    grid-column-end: 4;
-    padding: 1em;
+    width: 17cm;
 }
 
 app-ver-gen {
     grid-row-start: 2;
-    grid-column-start: 5;
-    grid-column-end: 8;
-    padding: 1em;
+    grid-column-start: 3;
+    width: 7cm;
 }
 
 app-progress-bar {
-    grid-row-start: 3;
+    grid-row-start: 2;
     grid-column-start: 5;
-    grid-column-end: 10;
-    padding: 1em;
+    width: 15cm;
+}
+
+app-job-files {
+    grid-row-start: 3;
+    grid-column-start: 3;
+    width: 7cm;
+}
+
+app-job-history {
+    grid-row-start: 4;
+    grid-column-start: 5;
+    width: 15cm;
 }
