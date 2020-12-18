@@ -119,6 +119,14 @@ export class ProgressBarComponent implements OnInit {
         return job_flats;
     }
 
+    is_task_success(task: Task): boolean {
+        return task.state == 'FIN';
+    }
+
+    is_task_fail(task: Task): boolean {
+        return task.state == 'FAIL';
+    }
+
     job_state_message_info_handle(msg: Message): void {
         let message: { [index: string]: any } = msg['content']['message'];
         if (typeof message == 'undefined')

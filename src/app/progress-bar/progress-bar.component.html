@@ -5,9 +5,18 @@
   <div class="ProgressContent">
     <mat-list role="list">
       <mat-list-item role="listitem" *ngFor="let job of get_jobs()">
-        {{job.unique_id}}
-        {{job.jobid}}
-        <p *ngFor="let t of job.tasks">{{t.taskid}}{{t.state}}</p>
+        <span class="Uid">
+          {{job.unique_id}}
+        </span>
+        <span class="Jobid">
+          {{job.jobid}}
+        </span>
+        <div class="Tasks">
+          <p class="Task" *ngFor="let t of job.tasks"
+             [ngStyle]="{ 'color': t.state == 'FIN' ? 'green' : (t.state == 'FAIL' ? 'red' : 'yellow')}">
+            {{t.taskid}}
+          </p>
+        </div>
       </mat-list-item>
     </mat-list>
   </div>
