@@ -19,7 +19,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { JobHistoryComponent } from './job-history/job-history.component';
-import { JobFilesComponent } from './job-files/job-files.component';
+import { VerFileExplorerComponent } from './ver-file-explorer/ver-file-explorer.component';
 
 @NgModule({
     declarations: [
@@ -30,7 +30,7 @@ import { JobFilesComponent } from './job-files/job-files.component';
         ProgressBarComponent,
         NavrowComponent,
         JobHistoryComponent,
-        JobFilesComponent
+        VerFileExplorerComponent,
     ],
     imports: [
         BrowserModule,

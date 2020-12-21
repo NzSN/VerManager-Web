@@ -85,18 +85,19 @@ export class MessageService {
 
     register(msg_type: string): Observable<Message> | null {
         // To check that is this msg_type is unique.
-        if (typeof this.msg_queues[msg_type] == "undefined")
+        if (typeof this.msg_queues[msg_type] == "undefined") {
             this.msg_queues[msg_type] = new MessageQueue();
-        else
+        } else
             return null;
 
         return new Observable(msg_receiver => {
             setInterval(() => {
                 let q: MessageQueue = this.msg_queues[msg_type];
+
                 while (!q.isEmpty()) {
                     msg_receiver.next(q.shift());
                 }
-            }, 3000);
+            }, 1000);
         });
     }
 

@@ -5,13 +5,13 @@ import { ChannelService } from './channel.service';
 import { Message } from './message';
 
 class ChannelServiceFake {
-    producer: Observable<string> = new Observable(obs => {
+    producer: Observable<Object> = new Observable(obs => {
         setInterval(() => {
-            obs.next('{"type": "TYPE", "content": {"123": "123"}}');
-        }, 3000);
+            obs.next({ "type": "TYPE", "content": { "123": "123" } });
+        }, 1000);
     });
 
-    create(url: string): Observable<string> {
+    create(url: string): Observable<Object> {
         return this.producer;
     }
 }
@@ -33,7 +33,6 @@ describe('MessageService', () => {
     it('register', done => {
         let msg: Message;
         service.register("TYPE").subscribe(data => {
-            console.log(data);
             expect(data).toEqual({ "type": "TYPE", "content": { "123": "123" } });
             done();
         });
