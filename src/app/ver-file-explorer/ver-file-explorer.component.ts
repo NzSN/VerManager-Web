@@ -7,11 +7,11 @@ import { Message, QueryEvent } from '../message';
 @Component({
     selector: 'app-ver-file-explorer',
     templateUrl: './ver-file-explorer.component.html',
-    styleUrls: ['./ver-file-explorer.component.css']
+    styleUrls: ['./ver-file-explorer.component.css'],
 })
 export class VerFileExplorerComponent implements OnInit {
 
-    private results: { [index: string]: VerResult } = {};
+    results: { [index: string]: VerResult } = {};
     constructor(private msgService: MessageService) { }
 
     ngOnInit(): void {

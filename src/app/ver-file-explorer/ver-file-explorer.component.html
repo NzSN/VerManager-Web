@@ -1,1 +1,17 @@
-<p>ver-file-explorer works!</p>
+<div id="FileExplorer" class="mat-elevation-z1">
+  <h3>File Explorer</h3>
+  <mat-divider></mat-divider>
+
+  <div class="ExplorePanel">
+    <mat-form-field>
+      <mat-label>Files</mat-label>
+      <mat-select #SelectedVersion>
+        <mat-option *ngFor="let result of files()" [value]="result.unique_id">
+          {{result.unique_id}}:{{result.ver_id}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-flat-button color="primary">Retrieve</button>
+  </div>
+</div>

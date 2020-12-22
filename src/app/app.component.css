@@ -31,7 +31,7 @@ app-progress-bar {
     width: 15cm;
 }
 
-app-job-files {
+app-ver-file-explorer {
     grid-row-start: 3;
     grid-column-start: 3;
     width: 7cm;
