@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MessageService } from '../message.service';
 import { VerResult } from './verResult';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Message, QueryEvent } from '../message';
 
 
@@ -12,7 +13,10 @@ import { Message, QueryEvent } from '../message';
 export class VerFileExplorerComponent implements OnInit {
 
     results: { [index: string]: VerResult } = {};
-    constructor(private msgService: MessageService) { }
+    constructor(
+        private msgService: MessageService,
+        private http: HttpClient
+    ) { }
 
     ngOnInit(): void {
         // Send an event to master to acquire already generated
@@ -48,6 +52,18 @@ export class VerFileExplorerComponent implements OnInit {
 
     files(): VerResult[] {
         return Object.values(this.results);
+    }
+
+    retrieve_file(unique_id: string): void {
+        console.log(unique_id);
+        console.log(this.results[unique_id]);
+
+        if (unique_id in this.results) {
+            let result = this.results[unique_id];
+            window.open(result.url);
+        } else {
+            // Alert
+        }
     }
 
 }

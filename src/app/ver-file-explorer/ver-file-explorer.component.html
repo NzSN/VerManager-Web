@@ -6,12 +6,15 @@
     <mat-form-field>
       <mat-label>Files</mat-label>
       <mat-select #SelectedVersion>
-        <mat-option *ngFor="let result of files()" [value]="result.unique_id">
+        <mat-option *ngFor="let result of files()" [value]="result">
           {{result.unique_id}}:{{result.ver_id}}
         </mat-option>
       </mat-select>
     </mat-form-field>
 
-    <button mat-flat-button color="primary">Retrieve</button>
+    <button mat-flat-button color="primary"
+            (click)="retrieve_file(SelectedVersion.value.unique_id)">
+      Retrieve
+    </button>
   </div>
 </div>
