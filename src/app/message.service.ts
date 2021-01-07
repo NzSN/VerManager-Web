@@ -39,7 +39,7 @@ class MessageQueue {
 })
 export class MessageService {
 
-    private sock_url = "ws://localhost:8000/commu/";
+    private sock_url = "/commu/";
 
     /**
      * With Help of msg_queues MessageService able to
@@ -52,7 +52,9 @@ export class MessageService {
     private channel: Channel<Object>;
 
     constructor(private channelService: ChannelService) {
-        this.channel = this.channelService.create(this.sock_url);
+        this.channel = this.channelService.create(
+            "ws://" + location.host + this.sock_url
+        );
 
         this.channel.subscribe({
             next: msg => {
