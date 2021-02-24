@@ -1,12 +1,22 @@
-<div id="RegPanel" class="mat-elevation-z2">
-  <h3 class="registerTitle">Version Register</h3>
-  <mat-divider></mat-divider>
+<div class="table-container" (scroll)="onScroll($event)">
+  <table mat-table [dataSource]="revisions">
+    <!-- Comment Column -->
+    <ng-container matColumnDef="Comment">
+      <th mat-header-cell *matHeaderCellDef> Comment </th>
+      <td mat-cell *matCellDef="let element"> {{element.comment}} </td>
+    </ng-container>
 
-  <mat-action-list id="revList" (scroll)="onScroll($event)">
-    <mat-list *ngFor="let revision of revisions" class="mat-elevation-z2">
-      <button class="revButton" (click)="register(revision.sn)">
-        <a>{{revision.comment | slice: 0:40}}</a>
-      </button>
-    </mat-list>
-  </mat-action-list>
+    <!-- Register Button -->
+    <ng-container matColumnDef="Register">
+      <th mat-header-cell *matHeaderCellDef> Register </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-flat-button color="primary" (click)="element.sn">
+          Register
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;">
+  </table>
 </div>

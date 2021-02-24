@@ -5,40 +5,27 @@ h1 {
 }
 
 .GenPanel {
-    display: grid;
-    width: 41cm;
-    grid-template-rows: 3cm 8cm 3cm 20cm;
-    grid-template-colums: repeat(41, 1em);
+    width: 40cm;
     margin-left: auto;
     margin-right: auto;
 }
 
 app-ver-register {
-    grid-row-start: 2;
-    grid-column-start: 1;
     width: 17cm;
 }
 
 app-ver-gen {
-    grid-row-start: 2;
-    grid-column-start: 3;
     width: 7cm;
 }
 
 app-progress-bar {
-    grid-row-start: 2;
-    grid-column-start: 5;
     width: 15cm;
 }
 
 app-ver-file-explorer {
-    grid-row-start: 3;
-    grid-column-start: 3;
     width: 7cm;
 }
 
 app-job-history {
-    grid-row-start: 4;
-    grid-column-start: 5;
     width: 15cm;
 }

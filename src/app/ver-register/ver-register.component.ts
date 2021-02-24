@@ -18,6 +18,8 @@ export class VerRegisterComponent implements OnInit {
     lastScrollTop: number = 0;
     revList: HTMLElement | null = null;
 
+    displayedColumns: string[] = ['Comment', 'Register'];
+
     constructor(private verService: VersionService,
         private revService: RevisionService,
         private dialog: MatDialog) { }

@@ -1,0 +1,57 @@
+<div class="grid-container">
+  <h1 class="mat-h1">Dashboard</h1>
+  <mat-grid-list cols="2" rowHeight="350px">
+
+    <!-- History Panel -->
+    <mat-grid-tile [colspan]="2" [rowspan]="1">
+      <mat-card class="dashboard-card">
+        <mat-card-title>History</mat-card-title>
+        <mat-card-content>
+          <app-job-history></app-job-history>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <!-- In-Running Task -->
+    <mat-grid-tile [colspan]="2" [rowspan]="1">
+      <mat-card class="dashboard-card">
+        <mat-card-title>Running</mat-card-title>
+        <mat-card-content>
+          <app-progress-bar></app-progress-bar>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <!-- Register -->
+    <mat-grid-tile [colspan]="1" [rowspan]="2">
+      <mat-card class="dashboard-card">
+        <mat-card-title>Register</mat-card-title>
+        <mat-card-content>
+          <app-ver-register></app-ver-register>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <!-- File Explore -->
+    <mat-grid-tile [colspan]="1" [rowspan]="1">
+      <mat-card class="dashboard-card">
+        <mat-card-title>File Explore</mat-card-title>
+        <mat-card-content>
+          <app-ver-file-explorer></app-ver-file-explorer>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+    <!-- Generate Panel -->
+    <mat-grid-tile [colspan]="1" [rowspan]="1">
+      <mat-card class="dashboard-card">
+        <mat-card-title>File Explore</mat-card-title>
+        <mat-card-content>
+          <app-ver-gen></app-ver-gen>
+        </mat-card-content>
+      </mat-card>
+    </mat-grid-tile>
+
+
+  </mat-grid-list>
+</div>

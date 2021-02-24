@@ -20,6 +20,15 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { JobHistoryComponent } from './job-history/job-history.component';
 import { VerFileExplorerComponent } from './ver-file-explorer/ver-file-explorer.component';
+import { DashComponent } from './dash/dash.component';
+import { MatCardModule } from '@angular/material/card';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { LayoutModule } from '@angular/cdk/layout';
+import { NavComponent } from './nav/nav.component';
+import { AppRoutingModule } from './app-routing.module';
+import { CardComponent } from './card/card.component';
+import { APP_BASE_HREF } from '@angular/common';
 
 @NgModule({
     declarations: [
@@ -31,6 +40,9 @@ import { VerFileExplorerComponent } from './ver-file-explorer/ver-file-explorer.
         NavrowComponent,
         JobHistoryComponent,
         VerFileExplorerComponent,
+        DashComponent,
+        NavComponent,
+        CardComponent,
     ],
     imports: [
         BrowserModule,
@@ -47,9 +59,14 @@ import { VerFileExplorerComponent } from './ver-file-explorer/ver-file-explorer.
         MatToolbarModule,
         MatSidenavModule,
         MatDividerModule,
-        MatTableModule
+        MatTableModule,
+        MatCardModule,
+        MatMenuModule,
+        MatIconModule,
+        LayoutModule,
+        AppRoutingModule
     ],
-    providers: [],
+    providers: [{ provide: APP_BASE_HREF, useValue: '/manager' }],
     bootstrap: [AppComponent]
 })
 export class AppModule { }
