@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MessageService } from '../message.service';
 import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
+import { MatTableDataSource } from '@angular/material/table';
 
 
 interface Job_flat {
@@ -33,7 +34,8 @@ export class ProgressBarComponent implements OnInit {
     private notify_allow: boolean = false;
     jobs: { [index: string]: Job } = {};
     jobSource = JobInfors;
-    columnDisplay = ['Job', 'Tasks'];
+    displayedColumns: string[] = ['uid', 'Name', 'Tasks'];
+    dataSource = new MatTableDataSource<Job_flat>();
 
     constructor(private msg_service: MessageService) {
         this.msg_service.register("job.msg").subscribe(msg => {
@@ -61,6 +63,7 @@ export class ProgressBarComponent implements OnInit {
 
                     subscribtion.unsubscribe();
                     this.notify_allow = true;
+                    this.dataSource.data = this.get_jobs()
                 }
             });
     }
@@ -73,6 +76,7 @@ export class ProgressBarComponent implements OnInit {
         }
 
         this.job_state_message_handle_internal(msg);
+        this.dataSource.data = this.get_jobs()
     }
 
     job_state_message_handle_internal(msg: Message): void {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MessageService } from '../message.service';
 import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
+import { MatTableDataSource } from '@angular/material/table';
 
 
 @Component({
@@ -12,6 +13,8 @@ import { Job, Task } from '../job';
 export class JobHistoryComponent implements OnInit {
 
     history: Job[] = [];
+    displayedColumns: string[] = ['uid', 'Name', 'Tasks']
+    dataSource = new MatTableDataSource<Job>([]);
 
     constructor(private msg_service: MessageService) {
         this.msg_service.register("job.msg.history").subscribe(history_msg => {
@@ -40,6 +43,7 @@ export class JobHistoryComponent implements OnInit {
             };
             this.history.push(job);
         }
+        this.dataSource.data = this.history;
     }
 
     job_tasks(job: Job): Task[] {

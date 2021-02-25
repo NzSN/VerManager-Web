@@ -27,7 +27,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { LayoutModule } from '@angular/cdk/layout';
 import { NavComponent } from './nav/nav.component';
 import { AppRoutingModule } from './app-routing.module';
-import { CardComponent } from './card/card.component';
 import { APP_BASE_HREF } from '@angular/common';
 
 @NgModule({
@@ -41,8 +40,7 @@ import { APP_BASE_HREF } from '@angular/common';
         JobHistoryComponent,
         VerFileExplorerComponent,
         DashComponent,
-        NavComponent,
-        CardComponent,
+        NavComponent
     ],
     imports: [
         BrowserModule,

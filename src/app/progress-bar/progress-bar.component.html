@@ -1,24 +1,33 @@
-<div id="ProgressBar" class="mat-elevation-z1">
-  <h3>Progress</h3>
+<div class="running-table-container">
+  <table mat-table [dataSource]="dataSource" *ngIf="dataSource.data.length > 0">
+    <!-- Unique ID -->
+    <ng-container matColumnDef="uid">
+      <th mat-header-cell *matHeaderCellDef> UID </th>
+      <td mat-cell *matCellDef="let element">
+        <p class="uid_field">{{element.unique_id}}</p>
+      </td>
+    </ng-container>
 
-  <mat-divider></mat-divider>
-  <div class="ProgressContent">
-    <mat-list role="list">
-      <mat-list-item role="listitem" *ngFor="let job of get_jobs()">
-        <span class="Uid">
-          {{job.unique_id}}
-        </span>
-        <span class="Jobid">
-          {{job.jobid}}
-        </span>
-        <div class="Tasks">
-          <p class="Task" *ngFor="let t of job.tasks"
-             [ngStyle]="{ 'color': t.state == 'FIN' ? 'green' : (t.state == 'FAIL' ? 'red' : 'yellow')}">
+    <!-- Job Name -->
+    <ng-container matColumnDef="Name">
+      <th mat-header-cell *matHeaderCellDef> Name </th>
+      <td mat-cell *matCellDef="let element"> {{element.jobid}} </td>
+    </ng-container>
+
+    <!-- Tasks -->
+    <ng-container matColumnDef="Tasks">
+      <th mat-header-cell *matHeaderCellDef> Tasks </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="task-container">
+          <p class="Task" *ngFor="let t of element.tasks"
+             [ngStyle]="{ 'color': is_task_success(t) ? 'green' : (is_task_fail(t) ? 'red' : 'orange') }">
             {{t.taskid}}
           </p>
         </div>
-      </mat-list-item>
-    </mat-list>
-  </div>
+      </td>
+    </ng-container>
 
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
 </div>
