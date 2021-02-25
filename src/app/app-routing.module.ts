@@ -4,6 +4,7 @@ import { DashComponent } from './dash/dash.component';
 import { JobHistoryComponent } from './job-history/job-history.component';
 
 const routes: Routes = [
+    { path: '', redirectTo: "/dash", pathMatch: 'full' },
     { path: 'dash', component: DashComponent },
 ];
 
