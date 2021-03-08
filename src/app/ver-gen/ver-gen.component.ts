@@ -21,10 +21,7 @@ export class VerGenComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.verService.getVersions()
-            .subscribe(versions => this.versions = versions);
-        this.revService.getRevisions()
-            .subscribe(revisions => this.revisions = revisions);
+        this.refresh()
     }
 
     generate(version: Version | undefined, ...infos: string[]): void {
@@ -39,5 +36,12 @@ export class VerGenComponent implements OnInit {
             const build: VersionBuild = { ver: version, info: buildInfo };
             this.verService.generate(build).subscribe();
         }
+    }
+
+    refresh(): void {
+        this.verService.getVersions()
+            .subscribe(versions => this.versions = versions);
+        this.revService.getRevisions()
+            .subscribe(revisions => this.revisions = revisions);
     }
 }
