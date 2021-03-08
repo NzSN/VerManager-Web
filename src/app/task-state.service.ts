@@ -35,7 +35,7 @@ export class TaskStateService {
         );
     }
 
-    private access_db(): Observable<IDBOpenDBRequest> {
+    private access_db(): Observable<IDBDatabase> {
 
         let database: IDBDatabase = undefined;
 
