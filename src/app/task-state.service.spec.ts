@@ -4,10 +4,16 @@ import { MessageService } from './message.service';
 import { TaskStateService } from './task-state.service';
 
 import { Observable } from 'rxjs';
-import { Message } from './message';
+import { Message, QueryEvent } from './message';
 
 
 class MessageServiceFake_UnderLimit {
+
+    private begin: boolean = false;
+
+    sendMsg(query: Message): void {
+        this.begin = true;
+    }
 
     register(msg_type: string): Observable<Message> | null {
         let limit = 1024;
@@ -15,18 +21,24 @@ class MessageServiceFake_UnderLimit {
 
         return new Observable(ob => {
             let intvl = setInterval(() => {
-                let msg_string: string = "message";
-                let message: Message = {
-                    "type": "T",
-                    "content": { "message": msg_string }
-                }
 
-                if (count + msg_string.length > limit) {
-                    clearInterval(intvl);
-                }
-                ob.next(message);
+                if (this.begin == true) {
+                    let msg_string: string = "FakeMessage";
+                    let message: Message = {
+                        "type": "T",
+                        "content": { "message": msg_string }
+                    }
 
-                count += msg_string.length;
+                    if (count + msg_string.length > limit) {
+                        clearInterval(intvl);
+                        message.content.message = ""
+                        ob.next(message);
+                    } else {
+                        ob.next(message);
+                    }
+
+                    count += msg_string.length;
+                }
             })
         });
     }
@@ -37,7 +49,9 @@ fdescribe('TaskStateService', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            providers: [{ provide: MessageService, useClass: MessageServiceFake_UnderLimit }]
+            providers: [{
+                provide: MessageService, useClass: MessageServiceFake_UnderLimit
+            }]
         });
         service = TestBed.inject(TaskStateService);
     });
@@ -48,7 +62,7 @@ fdescribe('TaskStateService', () => {
 
     it('Query Task from remote', (done) => {
         service.taskLogMessage("TID").subscribe(data => {
-
+            console.log(data);
         });
     });
 

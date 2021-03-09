@@ -68,7 +68,7 @@ export class MessageService {
                     "type": msg["type"],
                     "content": msg["content"]
                 };
-                let msg_type: string = message.type;
+                Let msg_type: string = message.type;
 
                 // If type of thie message is subscribe then add it to
                 // correspond queue.
