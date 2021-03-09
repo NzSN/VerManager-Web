@@ -196,6 +196,7 @@ export class TaskStateService {
             let intvl = setInterval(() => {
                 if (load_success == true && typeof log_messages != 'undefined') {
                     this.load_task_log_from_local_internal(ob, log_messages);
+                    clearInterval(intvl);
                 } else if (load_success == false) {
                     ob.next("");
                     clearInterval(intvl);
@@ -274,6 +275,14 @@ export class TaskStateService {
             return;
         }
 
+        // Store blob with count as key.
+        let logInfo: InfoLogUnit = {
+            'tid': tid,
+            'logBlobs': [blob],
+            'length': 0,
+            'fin': false
+        }
+
         db.subscribe(db => {
             let transaction = db.transaction([this.log_store_name], "readwrite");
             let obStore = transaction.objectStore(this.log_store_name);
@@ -293,15 +302,6 @@ export class TaskStateService {
             request_current.onerror = (event) => {
                 // No info of the task is stored in database
                 // create a new one.
-
-                // Store blob with count as key.
-                let logInfo: InfoLogUnit = {
-                    'tid': tid,
-                    'logBlobs': [blob],
-                    'length': 0,
-                    'fin': false
-                }
-
                 let request = obStore.add(logInfo);
                 request.onsuccess = (event) => {
 
