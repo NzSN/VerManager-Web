@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer, from } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
+import { concatMap, map } from 'rxjs/operators';
 import { Message } from './message';
 import { MessageService } from './message.service';
 import { QueryEvent } from './message';
@@ -14,8 +14,7 @@ interface InfoLogUnit {
     // is the log message is
     // completly store into Database.
     fin: boolean;
-}
-
+};
 
 @Injectable({
     providedIn: 'root'
@@ -33,6 +32,8 @@ export class TaskStateService {
      * cache will flush into IndexedDB as a Blob.
      */
     private log_cache: { [index: string]: string } = {};
+    private log_pos: { [index: string]: string } = {};
+
     // Unit is KB
     private cache_limit: number = 1024;
     // Observable that use while load task info from master.
@@ -50,6 +51,37 @@ export class TaskStateService {
         return this.is_item_exists(tid).pipe(
             concatMap(exists => this.load_task(tid, exists))
         );
+    }
+
+    cleanPersistentData(): Observable<boolean> {
+        let cleared: boolean = undefined;
+        let db = this.access_db();
+        if (db == null) {
+            return;
+        }
+
+        db.subscribe(db => {
+            let transaction = db.transaction([this.log_store_name], "readwrite");
+            let obStore = transaction.objectStore(this.log_store_name);
+
+            let req = obStore.clear();
+            req.onsuccess = (event) => {
+                cleared = true;
+            };
+            req.onerror = (event) => {
+                cleared = false;
+            };
+        });
+
+        return new Observable(ob => {
+            let intvl = setInterval(() => {
+                if (cleared != undefined) {
+                    ob.next(cleared);
+                    ob.complete();
+                    clearInterval(intvl);
+                }
+            }, 1000);
+        })
     }
 
     private access_db(): Observable<IDBDatabase> | null {
@@ -80,8 +112,10 @@ export class TaskStateService {
                 if (typeof this.database != 'undefined') {
                     ob.next(this.database);
                     clearInterval(intvl);
+                    ob.complete();
                 } else if (this.database == null) {
                     clearInterval(intvl);
+                    ob.complete();
                 }
             }, 100);
         });
@@ -107,17 +141,13 @@ export class TaskStateService {
             // exist an object with key is '0', cause the
             // blob which key is '0', is the first object
             // store into ObjectStore.
-            let req = obStore.openCursor();
+            let req = obStore.openCursor(tid);
 
             req.onsuccess = (event) => {
                 let cursor = req.result;
 
                 if (cursor) {
-                    if (cursor.key == tid) {
-                        exists = true;
-                    } else {
-                        cursor.continue();
-                    }
+                    exists = true;
                 } else {
                     exists = false;
                 }
@@ -135,38 +165,46 @@ export class TaskStateService {
                 if (typeof exists != 'undefined') {
                     clearInterval(counter);
                     ob.next(exists);
+                    ob.complete();
                 }
             }, 1000);
         });
     }
 
     private load_task(tid: string, isLocal: boolean): Observable<string> {
+
+        let try_cache = (msg: string) => {
+            this.cache(tid, msg);
+            return from([msg])
+        };
+        let load_from_remote_with_cache = this.load_task_log_from_remote(tid).pipe(
+            // Cache message
+            concatMap(msg => try_cache(msg))
+        );
+        let load_rest_from_remote = (msg) => {
+            if (msg == null) {
+                return load_from_remote_with_cache;
+            } else {
+                return from([msg]);
+            }
+        }
+
         if (isLocal) {
-            return this.load_task_log_from_local(tid);
-        } else {
-            return this.load_task_log_from_remote(tid).pipe(
-                // Cache message
-                concatMap(
-                    msg => (() => {
-                        this.cache(tid, msg);
-                        if (msg == "") {
-                            // Transfer complete no more data
-                            // will be transfered, just mark
-                            // the it as an complete log in database.
-                            this.mark_fin(tid);
-                        }
-                        return from([msg]);
-                    })()
-                )
+            return this.load_task_log_from_local(tid).pipe(
+                // If there is only part of log reside
+                // on local then need to load rest of log
+                // from master
+                concatMap(msg => load_rest_from_remote(msg))
             );
+        } else {
+            return load_from_remote_with_cache;
         }
     }
 
     // precondition: item exist in IndexedDB
     private load_task_log_from_local(tid: string): Observable<string> {
         let load_success: boolean = undefined;
-        let log_messages: Blob[] = undefined;
-
+        let log_messages: InfoLogUnit = undefined;
 
         let db = this.access_db();
 
@@ -179,8 +217,7 @@ export class TaskStateService {
             let transaction = db.transaction([this.log_store_name])
             let obStore = transaction.objectStore(this.log_store_name);
 
-            let req = obStore.getAll();
-            log_messages = req.result;
+            let req = obStore.get(tid);
 
             req.onsuccess = () => {
                 log_messages = req.result;
@@ -195,27 +232,51 @@ export class TaskStateService {
         return new Observable(ob => {
             let intvl = setInterval(() => {
                 if (load_success == true && typeof log_messages != 'undefined') {
-                    this.load_task_log_from_local_internal(ob, log_messages);
+                    this.load_task_log_from_local_internal(ob, log_messages.logBlobs, log_messages.fin);
                     clearInterval(intvl);
                 } else if (load_success == false) {
                     ob.next("");
+                    ob.complete();
                     clearInterval(intvl);
                 }
             })
         })
     }
 
-    private load_task_log_from_local_internal(ob: Observer<string>, messages: Blob[]): void {
-        for (let msg of messages) {
-            let text = msg.text().then(text => {
+    private load_task_log_from_local_internal(
+        ob: Observer<string>, messages: Blob[], isFin: boolean): void {
+
+        if (messages.length == 0) {
+
+        }
+
+        let prev: Promise<string> = messages[0].text();
+        let proc_messages = messages.slice(1, messages.length);
+
+        for (let msg of proc_messages) {
+            prev = prev.then(text => {
                 ob.next(text);
+                return msg.text();
             })
         }
+
+        prev.then(text => {
+            ob.next(text);
+            if (isFin) {
+                ob.next("");
+            } else {
+                ob.next(null);
+            }
+
+            ob.complete();
+        });
+
+
+
     }
 
     private load_task_log_from_remote(tid: string): Observable<string> {
         this.msg_service.sendMsg(new QueryEvent(["task", tid]));
-
         return this.recv.pipe(
             concatMap(msg => from([msg.content.message])),
         );
@@ -240,13 +301,10 @@ export class TaskStateService {
         if (this.log_cache[tid].length > this.cache_limit || data == "") {
             // Cache length exceed cache limit need to store
             // store into IndexedDB.
-            console.log("persistent_store");
-            this.persistent_store(tid);
+            this.persistent_store(tid, data == "");
 
             // Flush all cache
             this.log_cache[tid] = "";
-        } else {
-            console.log("Under limit");
         }
     }
 
@@ -254,7 +312,7 @@ export class TaskStateService {
      * Store the cache that correspond to the tid
      * into IndexedDB.
      */
-    private persistent_store(tid: string): void {
+    private persistent_store(tid: string, isLast: boolean): void {
 
         if (tid in this.unstable_tasks) {
             // The info of the task is in unstable
@@ -279,48 +337,50 @@ export class TaskStateService {
         let logInfo: InfoLogUnit = {
             'tid': tid,
             'logBlobs': [blob],
-            'length': 0,
-            'fin': false
+            'length': cache.length,
+            'fin': isLast
         }
 
         db.subscribe(db => {
             let transaction = db.transaction([this.log_store_name], "readwrite");
             let obStore = transaction.objectStore(this.log_store_name);
 
-            let request_current = obStore.get(tid);
+            let request_current = obStore.openCursor(tid);
             request_current.onsuccess = (event) => {
-                // Store the last cache into database
-                let current_data: InfoLogUnit = request_current.result;
-                current_data.logBlobs.push(blob);
+                let cursor = request_current.result;
 
-                let request_update = obStore.put(current_data);
-                request_update.onerror = (event) => {
-                    this.unstable_tasks.push(tid);
+                if (cursor) {
+                    // Store the last cache into database
+                    let current_data: InfoLogUnit = cursor.value;
+                    current_data.logBlobs.push(blob);
+                    current_data.length += cache.length;
+                    current_data.fin = isLast;
+
+                    let request_update = obStore.put(current_data);
+                    request_update.onerror = (event) => {
+                        this.unstable_tasks.push(tid);
+                    }
+                } else {
+                    // No info of the task is stored in database
+                    // create a new one.
+                    let request = obStore.add(logInfo);
+                    request.onerror = (event) => {
+                        // Mark the task which tid equal to parameter
+                        // as a unstable state to prevent break of
+                        // data within database.
+                        this.unstable_tasks.push(tid);
+                    }
+
                 }
             }
-
-            request_current.onerror = (event) => {
-                // No info of the task is stored in database
-                // create a new one.
-                let request = obStore.add(logInfo);
-                request.onsuccess = (event) => {
-
-                    console.log("Persistent store success");
-                }
-                request.onerror = (event) => {
-                    console.log("Fail to store");
-                    // Mark the task which tid equal to parameter
-                    // as a unstable state to prevent break of
-                    // data within database.
-                    this.unstable_tasks.push(tid);
-                }
-            }
-
-
         });
     }
 
-    private mark_fin(tid: string): void {
+    mark_fin(tid: string): void {
+        this.set_fin_state(tid, true);
+    }
+
+    set_fin_state(tid: string, fin: boolean): void {
         if (tid in this.unstable_tasks) {
             return;
         }
@@ -339,7 +399,7 @@ export class TaskStateService {
             request_current.onsuccess = (event) => {
                 let data: InfoLogUnit = request_current.result;
 
-                data.fin = true;
+                data.fin = fin;
 
                 let put_request = obStore.put(data);
                 put_request.onerror = (event) => {
