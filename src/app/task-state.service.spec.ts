@@ -12,7 +12,7 @@ class MessageServiceFake_UnderLimit {
 
     private begin: boolean = false;
 
-    sendMsg(query: Message): void {
+    sendMsg(_: Message): void {
         this.begin = true;
     }
 
@@ -133,4 +133,6 @@ fdescribe('TaskStateService', () => {
             }
         });
     });
+
+
 });
