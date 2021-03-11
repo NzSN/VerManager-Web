@@ -3,7 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { MessageService } from './message.service';
 import { TaskStateService } from './task-state.service';
 
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { concatMap, delay, filter } from 'rxjs/operators';
 import { Message, QueryEvent } from './message';
 
 
@@ -62,60 +63,74 @@ fdescribe('TaskStateService', () => {
     });
 
     it('Query Task from remote', (done) => {
-        service.cleanPersistentData().subscribe(cleared => {
-            expect(cleared).toBeTrue();
-            service.taskLogMessage("TID").subscribe(data => {
-                if (data == "") {
-                    done();
-                } else {
-                    expect(data).toBe("FakeMessage");
-                }
-            });
-        });
+        service.cleanPersistentData().pipe(
+            // Clear database
+            concatMap(cleared => (() => {
+                expect(cleared).toBeTrue();
+                return from([cleared]);
+            })()),
+            // Load from remote
+            concatMap(_ => service.taskLogMessage("TID"))
+        ).subscribe(data => {
+            if (data == "") {
+                done();
+            } else {
+                expect(data).toBe("FakeMessage");
+            }
+        })
     });
 
     it('Query Task from local', (done) => {
-        service.cleanPersistentData().subscribe(cleared => {
-            expect(cleared).toBeTrue;
-
-            // Run two times of taskLogMessage
-            // so the second call of taskLogMessage
-            // should be read from local
-            service.taskLogMessage("TID").subscribe(data => {
+        service.cleanPersistentData().pipe(
+            // Clear database
+            concatMap(cleared => (() => {
+                expect(cleared).toBeTrue();
+                return from([cleared]);
+            })()),
+            // Load from remote
+            concatMap(_ => service.taskLogMessage("TID")),
+            // Load from local once all log is reside on local
+            concatMap(data => (() => {
                 if (data == "") {
-                    service.taskLogMessage("TID").subscribe(data_local => {
-                        if (data_local == '') {
-                            done();
-                        } else {
-                            expect(data_local.length).toBeCloseTo(1023);
-                        }
-                    })
+                    return service.taskLogMessage("TID");
+                } else {
+                    return from([data]);
                 }
-            });
-
+            })()),
+            filter(data => data == "" || data != "FakeMessage")
+        ).subscribe(data => {
+            if (data == "") {
+                done();
+            } else {
+                expect(data.length).toBeCloseTo(1023);
+            }
         });
     });
 
     it('Query Task which only part of info reside on local', (done) => {
-        service.cleanPersistentData().subscribe(cleared => {
-            expect(cleared).toBeTrue;
-
-            // Read data from remote
-            service.taskLogMessage("TID").subscribe(data => {
+        service.cleanPersistentData().pipe(
+            // Clear database
+            concatMap(cleared => (() => {
+                expect(cleared).toBeTrue();
+                return from([cleared])
+            })()),
+            // Load from remote
+            concatMap(_ => service.taskLogMessage("TID")),
+            // Load from local
+            concatMap(data => (() => {
                 if (data == "") {
-                    // Mark log as unfinished
+                    // Mark as unfinished task
                     service.set_fin_state("TID", false);
-                    // Load log message from both local and remote
-                    setTimeout(() => {
-                        service.taskLogMessage("TID").subscribe(data => {
-                            if (data == "") {
-                                done();
-                            }
-                        })
-                    }, 1000);
+                    // Load task
+                    return service.taskLogMessage("TID").pipe(delay(1000));
+                } else {
+                    return from([data]);
                 }
-            })
-
-        })
-    })
+            })())
+        ).subscribe(x => {
+            if (x == "") {
+                done();
+            }
+        });
+    });
 });
