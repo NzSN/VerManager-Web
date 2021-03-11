@@ -32,7 +32,7 @@ export class TaskStateService {
      * cache will flush into IndexedDB as a Blob.
      */
     private log_cache: { [index: string]: string } = {};
-    private log_pos: { [index: string]: string } = {};
+    private log_pos: { [index: string]: number } = {};
 
     // Unit is KB
     private cache_limit: number = 1024;
@@ -173,28 +173,28 @@ export class TaskStateService {
 
     private load_task(tid: string, isLocal: boolean): Observable<string> {
 
-        let try_cache = (msg: string) => {
-            this.cache(tid, msg);
-            return from([msg])
-        };
-        let load_from_remote_with_cache = this.load_task_log_from_remote(tid).pipe(
-            // Cache message
-            concatMap(msg => try_cache(msg))
-        );
-        let load_rest_from_remote = (msg) => {
-            if (msg == null) {
-                return load_from_remote_with_cache;
-            } else {
-                return from([msg]);
-            }
-        }
+        let load_from_remote_with_cache =
+            this.load_task_log_from_remote(tid).pipe(
+                // Cache message
+                concatMap(msg => {
+                    this.log_pos[tid] += msg.length;
+                    this.cache(tid, msg);
+                    return from([msg]);
+                }),
+            );
 
         if (isLocal) {
             return this.load_task_log_from_local(tid).pipe(
                 // If there is only part of log reside
                 // on local then need to load rest of log
                 // from master
-                concatMap(msg => load_rest_from_remote(msg))
+                concatMap(msg => (() => {
+                    if (msg == null) {
+                        return load_from_remote_with_cache;
+                    } else {
+                        return from([msg]);
+                    }
+                })())
             );
         } else {
             return load_from_remote_with_cache;
@@ -232,7 +232,11 @@ export class TaskStateService {
         return new Observable(ob => {
             let intvl = setInterval(() => {
                 if (load_success == true && typeof log_messages != 'undefined') {
-                    this.load_task_log_from_local_internal(ob, log_messages.logBlobs, log_messages.fin);
+                    if (!(tid in this.log_pos)) {
+                        this.log_pos[tid] = log_messages.length;
+                    }
+                    this.load_task_log_from_local_internal(
+                        ob, log_messages.logBlobs, log_messages.fin);
                     clearInterval(intvl);
                 } else if (load_success == false) {
                     ob.next("");
@@ -245,10 +249,6 @@ export class TaskStateService {
 
     private load_task_log_from_local_internal(
         ob: Observer<string>, messages: Blob[], isFin: boolean): void {
-
-        if (messages.length == 0) {
-
-        }
 
         let prev: Promise<string> = messages[0].text();
         let proc_messages = messages.slice(1, messages.length);
@@ -270,13 +270,24 @@ export class TaskStateService {
 
             ob.complete();
         });
-
-
-
     }
 
     private load_task_log_from_remote(tid: string): Observable<string> {
-        this.msg_service.sendMsg(new QueryEvent(["task", tid]));
+        let pos: number;
+
+        if (!(tid in this.log_pos)) {
+            // No position info about the task
+            // so there is no log file on local
+            // and set pos to 0, with 0 system
+            // able to get all data of log.
+            pos = this.log_pos[tid] = 0;
+        } else {
+            pos = this.log_pos[tid];
+        }
+
+        this.msg_service.sendMsg(
+            new QueryEvent(["task", tid, tid, (pos as any) as string])
+        );
         return this.recv.pipe(
             concatMap(msg => from([msg.content.message])),
         );
