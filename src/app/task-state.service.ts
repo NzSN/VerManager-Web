@@ -46,7 +46,13 @@ export class TaskStateService {
         this.recv = this.msg_service.register("tss.msg");
     }
 
-    taskLogMessage(tid: string): Observable<string> {
+    taskLogMessage(uid: string, tid: string): Observable<string> {
+        // combine uid and tid to generate a
+        // global uniqu id
+        tid = uid + "_" + tid;
+
+        console.log(tid);
+
         // Is log exist in IndexedDB ?
         return this.is_item_exists(tid).pipe(
             concatMap(exists => this.load_task(tid, exists))
@@ -274,6 +280,8 @@ export class TaskStateService {
 
     private load_task_log_from_remote(tid: string): Observable<string> {
         let pos: number;
+        let uid: string = tid.split("_")[0];
+        tid = tid.slice(tid.indexOf("_") + 1, tid.length);
 
         if (!(tid in this.log_pos)) {
             // No position info about the task
@@ -286,7 +294,7 @@ export class TaskStateService {
         }
 
         this.msg_service.sendMsg(
-            new QueryEvent(["task", tid, tid, (pos as any) as string])
+            new QueryEvent(["task", uid, tid, (pos as any) as string])
         );
         return this.recv.pipe(
             concatMap(msg => from([msg.content.message])),
@@ -387,11 +395,14 @@ export class TaskStateService {
         });
     }
 
-    mark_fin(tid: string): void {
-        this.set_fin_state(tid, true);
+    mark_fin(uid: string, tid: string): void {
+        this.set_fin_state(uid, tid, true);
     }
 
-    set_fin_state(tid: string, fin: boolean): void {
+    set_fin_state(uid: string, tid: string, fin: boolean): void {
+
+        tid = uid + "_" + tid;
+
         if (tid in this.unstable_tasks) {
             return;
         }

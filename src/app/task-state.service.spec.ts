@@ -70,7 +70,7 @@ fdescribe('TaskStateService', () => {
                 return from([cleared]);
             }),
             // Load from remote
-            concatMap(_ => service.taskLogMessage("TID"))
+            concatMap(_ => service.taskLogMessage("UID", "TID"))
         ).subscribe(data => {
             if (data == "") {
                 done();
@@ -88,11 +88,11 @@ fdescribe('TaskStateService', () => {
                 return from([cleared]);
             }),
             // Load from remote
-            concatMap(_ => service.taskLogMessage("TID")),
+            concatMap(_ => service.taskLogMessage("UID", "TID")),
             // Load from local once all log is reside on local
             concatMap(data => {
                 if (data == "") {
-                    return service.taskLogMessage("TID");
+                    return service.taskLogMessage("UID", "TID");
                 } else {
                     return from([data]);
                 }
@@ -115,14 +115,14 @@ fdescribe('TaskStateService', () => {
                 return from([cleared])
             }),
             // Load from remote
-            concatMap(_ => service.taskLogMessage("TID")),
+            concatMap(_ => service.taskLogMessage("UID", "TID")),
             // Load from local
             concatMap(data => {
                 if (data == "") {
                     // Mark as unfinished task
-                    service.set_fin_state("TID", false);
+                    service.set_fin_state("UID", "TID", false);
                     // Load task
-                    return service.taskLogMessage("TID").pipe(delay(1000));
+                    return service.taskLogMessage("UID", "TID").pipe(delay(1000));
                 } else {
                     return from([data]);
                 }

@@ -3,6 +3,7 @@ import { MessageService } from '../message.service';
 import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
+import { TaskStateService } from '../task-state.service';
 
 
 interface Job_flat {
@@ -37,7 +38,10 @@ export class ProgressBarComponent implements OnInit {
     displayedColumns: string[] = ['uid', 'Name', 'Tasks'];
     dataSource = new MatTableDataSource<Job_flat>();
 
-    constructor(private msg_service: MessageService) {
+    constructor(
+        private msg_service: MessageService,
+        private tss: TaskStateService) {
+
         this.msg_service.register("job.msg").subscribe(msg => {
             this.job_state_message_handle(msg);
         });
@@ -183,5 +187,11 @@ export class ProgressBarComponent implements OnInit {
 
         delete this.jobs[unique_id];
 
+    }
+
+    get_task_message_log(uid: string, taskId: string): void {
+        this.tss.taskLogMessage(uid, taskId).subscribe(message => {
+            console.log(message);
+        });
     }
 }

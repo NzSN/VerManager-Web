@@ -3,6 +3,7 @@ import { MessageService } from '../message.service';
 import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
+import { TaskStateService } from '../task-state.service';
 
 
 @Component({
@@ -16,7 +17,10 @@ export class JobHistoryComponent implements OnInit {
     displayedColumns: string[] = ['uid', 'Name', 'Tasks']
     dataSource = new MatTableDataSource<Job>([]);
 
-    constructor(private msg_service: MessageService) {
+    constructor(
+        private msg_service: MessageService,
+        private tss: TaskStateService) {
+
         this.msg_service.register("job.msg.history").subscribe(history_msg => {
             this.history_msg_handle(history_msg);
         })
@@ -56,5 +60,12 @@ export class JobHistoryComponent implements OnInit {
 
     is_task_fail(task: Task): boolean {
         return task.state == "FAIL";
+    }
+
+    get_task_log_messages(uid: string, taskId: string): void {
+        console.log(uid, taskId);
+        this.tss.taskLogMessage(uid, taskId).subscribe(message => {
+            console.log(message);
+        });
     }
 }
