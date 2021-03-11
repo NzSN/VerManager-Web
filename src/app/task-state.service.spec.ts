@@ -65,10 +65,10 @@ fdescribe('TaskStateService', () => {
     it('Query Task from remote', (done) => {
         service.cleanPersistentData().pipe(
             // Clear database
-            concatMap(cleared => (() => {
+            concatMap(cleared => {
                 expect(cleared).toBeTrue();
                 return from([cleared]);
-            })()),
+            }),
             // Load from remote
             concatMap(_ => service.taskLogMessage("TID"))
         ).subscribe(data => {
@@ -83,20 +83,20 @@ fdescribe('TaskStateService', () => {
     it('Query Task from local', (done) => {
         service.cleanPersistentData().pipe(
             // Clear database
-            concatMap(cleared => (() => {
+            concatMap(cleared => {
                 expect(cleared).toBeTrue();
                 return from([cleared]);
-            })()),
+            }),
             // Load from remote
             concatMap(_ => service.taskLogMessage("TID")),
             // Load from local once all log is reside on local
-            concatMap(data => (() => {
+            concatMap(data => {
                 if (data == "") {
                     return service.taskLogMessage("TID");
                 } else {
                     return from([data]);
                 }
-            })()),
+            }),
             filter(data => data == "" || data != "FakeMessage")
         ).subscribe(data => {
             if (data == "") {
@@ -110,14 +110,14 @@ fdescribe('TaskStateService', () => {
     it('Query Task which only part of info reside on local', (done) => {
         service.cleanPersistentData().pipe(
             // Clear database
-            concatMap(cleared => (() => {
+            concatMap(cleared => {
                 expect(cleared).toBeTrue();
                 return from([cleared])
-            })()),
+            }),
             // Load from remote
             concatMap(_ => service.taskLogMessage("TID")),
             // Load from local
-            concatMap(data => (() => {
+            concatMap(data => {
                 if (data == "") {
                     // Mark as unfinished task
                     service.set_fin_state("TID", false);
@@ -126,7 +126,7 @@ fdescribe('TaskStateService', () => {
                 } else {
                     return from([data]);
                 }
-            })())
+            })
         ).subscribe(x => {
             if (x == "") {
                 done();
