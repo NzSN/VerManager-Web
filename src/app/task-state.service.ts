@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Observer, from } from 'rxjs';
-import { concatMap, map } from 'rxjs/operators';
+import { concatMap, map, retryWhen, delay, filter } from 'rxjs/operators';
 import { Message } from './message';
 import { MessageService } from './message.service';
 import { QueryEvent } from './message';
@@ -36,22 +36,29 @@ export class TaskStateService {
 
     // Unit is KB
     private cache_limit: number = 1024;
-    // Observable that use while load task info from master.
-    private recv: Observable<Message>;
     // Unstable Task info
     private unstable_tasks: string[] = [];
+    // Log Message Queues
+    private queues: { [index: string]: Message[] } = {};
 
     constructor(private msg_service: MessageService) {
         // Register message
-        this.recv = this.msg_service.register("tss.msg");
+        this.msg_service.register("job.msg.task.output")
+            .subscribe(msg => {
+                let uid = msg.content.message.uid;
+                let tid = msg.content.message.task;
+                let id = uid + "_" + tid;
+
+                if (id in this.queues) {
+                    this.queues[id].push(msg);
+                }
+            });
     }
 
     taskLogMessage(uid: string, tid: string): Observable<string> {
         // combine uid and tid to generate a
         // global uniqu id
         tid = uid + "_" + tid;
-
-        console.log(tid);
 
         // Is log exist in IndexedDB ?
         return this.is_item_exists(tid).pipe(
@@ -179,16 +186,6 @@ export class TaskStateService {
 
     private load_task(tid: string, isLocal: boolean): Observable<string> {
 
-        let load_from_remote_with_cache =
-            this.load_task_log_from_remote(tid).pipe(
-                // Cache message
-                concatMap(msg => {
-                    this.log_pos[tid] += msg.length;
-                    this.cache(tid, msg);
-                    return from([msg]);
-                }),
-            );
-
         if (isLocal) {
             return this.load_task_log_from_local(tid).pipe(
                 // If there is only part of log reside
@@ -196,14 +193,14 @@ export class TaskStateService {
                 // from master
                 concatMap(msg => (() => {
                     if (msg == null) {
-                        return load_from_remote_with_cache;
+                        return this.load_task_log_from_remote(tid);
                     } else {
                         return from([msg]);
                     }
                 })())
             );
         } else {
-            return load_from_remote_with_cache;
+            return this.load_task_log_from_remote(tid);
         }
     }
 
@@ -278,27 +275,86 @@ export class TaskStateService {
         });
     }
 
-    private load_task_log_from_remote(tid: string): Observable<string> {
+    private load_task_log_from_remote(id: string): Observable<string> {
         let pos: number;
-        let uid: string = tid.split("_")[0];
-        tid = tid.slice(tid.indexOf("_") + 1, tid.length);
+        let uid: string = id.split("_")[0];
 
-        if (!(tid in this.log_pos)) {
+        if (!(id in this.log_pos)) {
             // No position info about the task
             // so there is no log file on local
             // and set pos to 0, with 0 system
             // able to get all data of log.
-            pos = this.log_pos[tid] = 0;
+            pos = this.log_pos[id] = 0;
         } else {
-            pos = this.log_pos[tid];
+            pos = this.log_pos[id];
         }
 
-        this.msg_service.sendMsg(
-            new QueryEvent(["task", uid, tid, (pos as any) as string])
+        // Add queue to this.queues
+        if (!(id in this.queues)) {
+            this.queues[id] = [];
+        }
+
+        let tid = id.slice(id.indexOf("_") + 1, id.length);
+
+        // Send first request
+        let event = new QueryEvent([
+            "task", uid, tid, (pos as any) as string
+        ]);
+        this.msg_service.sendMsg(event);
+
+        return this.retrieve_log_msg(id).pipe(
+            concatMap(msg => {
+                // Only part of log content on local
+                // try to request more content
+                if (msg.content.message.last == 0) {
+                    let event = new QueryEvent([
+                        "task", uid, tid, (this.log_pos[id] as any) as string
+                    ]);
+                    this.msg_service.sendMsg(event);
+                }
+                return from([msg]);
+            }),
+            // Cache the message
+            concatMap(msg => {
+                let msg_text = msg.content.message.msg;
+                this.cache(id, msg_text);
+                return from([msg_text]);
+            }),
         );
-        return this.recv.pipe(
-            concatMap(msg => from([msg.content.message])),
-        );
+    }
+
+    private retrieve_log_msg(id: string): Observable<Message> {
+        let obsv: Observable<Message> = new Observable(ob => {
+            let intvl = setInterval(() => {
+                this.retrieve_log_msg_internal(id, ob, intvl);
+            }, 10);
+        });
+
+        return obsv;
+    }
+
+    private retrieve_log_msg_internal(id: string, ob: Observer<Message>, intvl: any): void {
+        if (!(id in this.queues)) {
+            ob.error(1);
+        }
+
+        if (this.queues[id].length != 0) {
+            let q = this.queues[id];
+            let msg: Message;
+
+            while (msg = q.shift()) {
+                if (msg == undefined) {
+                    break;
+                }
+
+                ob.next(msg);
+
+                if (msg.content.message.last == 1) {
+                    clearInterval(intvl);
+                    ob.complete();
+                }
+            }
+        }
     }
 
     /**
@@ -316,8 +372,15 @@ export class TaskStateService {
         // Cache update
         this.log_cache[tid] = this.log_cache[tid] + data;
 
+        // Update log pos
+        this.log_pos[tid] += data.length;
+
         // Persistent Store
         if (this.log_cache[tid].length > this.cache_limit || data == "") {
+            if (this.log_cache[tid].length == 0) {
+                return;
+            }
+
             // Cache length exceed cache limit need to store
             // store into IndexedDB.
             this.persistent_store(tid, data == "");
