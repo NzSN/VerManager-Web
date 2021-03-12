@@ -1,5 +1,5 @@
 <div class="table-container" (scroll)="onScroll($event)">
-  <table mat-table [dataSource]="revisions">
+  <table mat-table [dataSource]="revisions" *ngIf="revisions.length > 0">
     <!-- Comment Column -->
     <ng-container matColumnDef="Comment">
       <th mat-header-cell *matHeaderCellDef> Comment </th>
