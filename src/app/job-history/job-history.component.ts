@@ -21,9 +21,10 @@ export class JobHistoryComponent implements OnInit {
         private msg_service: MessageService,
         private tss: TaskStateService) {
 
-        this.msg_service.register("job.msg.history").subscribe(history_msg => {
-            this.history_msg_handle(history_msg);
-        })
+        this.msg_service.register(msg => msg.type == "job.msg.history")
+            .subscribe(history_msg => {
+                this.history_msg_handle(history_msg);
+            });
     }
 
     ngOnInit(): void {

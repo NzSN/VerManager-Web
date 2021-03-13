@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { Channel } from './channel';
 
 
@@ -8,26 +7,25 @@ import { Channel } from './channel';
 })
 export class ChannelService {
 
-    private channels: { [index: string]: WebSocketSubject<Object> } = {};
+    private channels: { [index: string]: Channel<Object> } = {};
     constructor() { }
 
     create(url: string): Channel<Object> {
-        let socket: WebSocketSubject<Object>;
+        let channel: Channel<Object> = new Channel<Object>(url);
 
-        if (typeof this.channels[url] == 'undefined') {
+        if (this.channels[url] == undefined) {
             // New channel
-            socket = webSocket(url);
-            this.channels[url] = socket;
+            this.channels[url] = channel;
         } else {
             // Exist channel
-            socket = this.channels[url];
+            return this.channels[url]
         }
 
-        return new Channel<Object>(socket);
+        return channel;
     }
 
     close(url: string): void {
-        if (typeof this.channels[url] != 'undefined') {
+        if (this.channels[url] != undefined) {
             this.channels[url].complete();
         }
     }

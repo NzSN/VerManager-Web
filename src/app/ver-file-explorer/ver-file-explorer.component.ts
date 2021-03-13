@@ -22,28 +22,30 @@ export class VerFileExplorerComponent implements OnInit {
         // Send an event to master to acquire already generated
         // files.
         this.msgService.sendMsg(new QueryEvent(["files"]));
-        this.msgService.register("job.msg.file.exists").subscribe(msg => {
-            let message: Object = msg.content.message;
+        this.msgService.register(msg => msg.type == "job.msg.file.exists")
+            .subscribe(msg => {
+                let message: Object = msg.content.message;
 
-            for (let idx in message) {
-                this.results[idx] = message[idx];
-            }
+                for (let idx in message) {
+                    this.results[idx] = message[idx];
+                }
 
-            this.switchToGrowState();
-        });
+                this.switchToGrowState();
+            });
     }
 
     switchToGrowState(): void {
-        this.msgService.register("job.msg.file.new").subscribe(msg => {
-            let file: VerResult = msg.content.message;
-            let unique_id: string = file['unique_id'];
+        this.msgService.register(msg => msg.type == "job.msg.file.new")
+            .subscribe(msg => {
+                let file: VerResult = msg.content.message;
+                let unique_id: string = file['unique_id'];
 
-            if (unique_id in this.results) {
-                return;
-            } else {
-                this.results[unique_id] = file;
-            }
-        });
+                if (unique_id in this.results) {
+                    return;
+                } else {
+                    this.results[unique_id] = file;
+                }
+            });
     }
 
     files_dict(): { [index: string]: VerResult } {

@@ -42,7 +42,7 @@ export class ProgressBarComponent implements OnInit {
         private msg_service: MessageService,
         private tss: TaskStateService) {
 
-        this.msg_service.register("job.msg").subscribe(msg => {
+        this.msg_service.register(msg => msg.type == "job.msg").subscribe(msg => {
             this.job_state_message_handle(msg);
         });
     }
@@ -53,7 +53,7 @@ export class ProgressBarComponent implements OnInit {
          */
         this.msg_service.sendMsg(new QueryEvent(["processing"]));
 
-        let subscribtion = this.msg_service.register("job.msg.batch")
+        let subscribtion = this.msg_service.register(msg => msg.type == "job.msg.batch")
             .subscribe(init_msg => {
 
                 // Subtype of message must a batch
