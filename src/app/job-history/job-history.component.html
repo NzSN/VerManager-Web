@@ -19,11 +19,11 @@
       <th mat-header-cell *matHeaderCellDef> Tasks </th>
       <td mat-cell *matCellDef="let element">
         <div class="task-container">
-          <button class="Task" *ngFor="let t of job_tasks(element)"
+          <p class="Task" *ngFor="let t of job_tasks(element)"
              (click)="get_task_log_messages(element.unique_id, t.taskid)"
              [ngStyle]="{ 'color': is_task_success(t) ? 'green' : (is_task_fail(t) ? 'red' : 'yellow') }">
             {{t.taskid}}
-          </button>
+          </p>
         </div>
       </td>
     </ng-container>

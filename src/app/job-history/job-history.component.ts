@@ -4,6 +4,7 @@ import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
 import { TaskStateService } from '../task-state.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 
 @Component({
@@ -19,7 +20,8 @@ export class JobHistoryComponent implements OnInit {
 
     constructor(
         private msg_service: MessageService,
-        private tss: TaskStateService) {
+        private tss: TaskStateService,
+        private dialog: MatDialog) {
 
         this.msg_service.register(msg => msg.type == "job.msg.history")
             .subscribe(history_msg => {
@@ -64,9 +66,26 @@ export class JobHistoryComponent implements OnInit {
     }
 
     get_task_log_messages(uid: string, taskId: string): void {
-        console.log(uid, taskId);
+        this.dialog.open(TaskLogDialog, { width: '30cm' });
         this.tss.taskLogMessage(uid, taskId).subscribe(message => {
             console.log(message);
         });
+    }
+}
+
+
+@Component({
+    selector: 'task-log-dialog',
+    templateUrl: 'task_log_msg_dialog.html'
+})
+export class TaskLogDialog {
+
+    public version: string;
+
+    constructor(
+        public dialogRef: MatDialogRef<TaskLogDialog>) { }
+
+    onCancel(): void {
+        this.dialogRef.close();
     }
 }
