@@ -31,10 +31,31 @@ describe('MessageService', () => {
     });
 
     it('register', done => {
-        let msg: Message;
-        service.register("TYPE").subscribe(data => {
+        service.register(msg => msg.type == "TYPE").subscribe(data => {
             expect(data).toEqual({ "type": "TYPE", "content": { "123": "123" } });
             done();
+        });
+    });
+
+    it('multiple register', done => {
+        let msgs: Message[] = [];
+
+        service.register(msg => msg.type == "TYPE").subscribe(data => {
+            expect(data).toEqual({ "type": "TYPE", "content": { "123": "123" } });
+            msgs.push(data);
+
+            if (msgs.length >= 2) {
+                done();
+            }
+        });
+
+        service.register(msg => msg.type == "TYPE").subscribe(data => {
+            expect(data).toEqual({ "type": "TYPE", "content": { "123": "123" } });
+            msgs.push(data);
+
+            if (msgs.length >= 2) {
+                done();
+            }
         });
     });
 });

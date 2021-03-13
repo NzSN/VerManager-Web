@@ -38,21 +38,12 @@ export class TaskStateService {
     private cache_limit: number = 1024;
     // Unstable Task info
     private unstable_tasks: string[] = [];
-    // Log Message Queues
-    private queues: { [index: string]: Message[] } = {};
+    private msg_src: Observable<Message>;
 
     constructor(private msg_service: MessageService) {
         // Register message
-        this.msg_service.register("job.msg.task.output")
-            .subscribe(msg => {
-                let uid = msg.content.message.uid;
-                let tid = msg.content.message.task;
-                let id = uid + "_" + tid;
-
-                if (id in this.queues) {
-                    this.queues[id].push(msg);
-                }
-            });
+        this.msg_src = this.msg_service
+            .register(msg => msg.type == "job.msg.task.output");
     }
 
     taskLogMessage(uid: string, tid: string): Observable<string> {
@@ -78,10 +69,10 @@ export class TaskStateService {
             let obStore = transaction.objectStore(this.log_store_name);
 
             let req = obStore.clear();
-            req.onsuccess = (event) => {
+            req.onsuccess = _ => {
                 cleared = true;
             };
-            req.onerror = (event) => {
+            req.onerror = _ => {
                 cleared = false;
             };
         });
@@ -289,11 +280,6 @@ export class TaskStateService {
             pos = this.log_pos[id];
         }
 
-        // Add queue to this.queues
-        if (!(id in this.queues)) {
-            this.queues[id] = [];
-        }
-
         let tid = id.slice(id.indexOf("_") + 1, id.length);
 
         // Send first request
@@ -324,37 +310,17 @@ export class TaskStateService {
     }
 
     private retrieve_log_msg(id: string): Observable<Message> {
-        let obsv: Observable<Message> = new Observable(ob => {
-            let intvl = setInterval(() => {
-                this.retrieve_log_msg_internal(id, ob, intvl);
-            }, 10);
-        });
+        let i = 0;
+
+        let obsv = this.msg_src.pipe(
+            filter(msg => {
+                let target_id = msg.content.message.uid + "_" +
+                    msg.content.message.task;
+                return id == target_id;
+            })
+        );
 
         return obsv;
-    }
-
-    private retrieve_log_msg_internal(id: string, ob: Observer<Message>, intvl: any): void {
-        if (!(id in this.queues)) {
-            ob.error(1);
-        }
-
-        if (this.queues[id].length != 0) {
-            let q = this.queues[id];
-            let msg: Message;
-
-            while (msg = q.shift()) {
-                if (msg == undefined) {
-                    break;
-                }
-
-                ob.next(msg);
-
-                if (msg.content.message.last == 1) {
-                    clearInterval(intvl);
-                    ob.complete();
-                }
-            }
-        }
     }
 
     /**
