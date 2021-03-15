@@ -4,6 +4,7 @@ import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
 import { TaskStateService } from '../task-state.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 
 interface Job_flat {
@@ -40,7 +41,8 @@ export class ProgressBarComponent implements OnInit {
 
     constructor(
         private msg_service: MessageService,
-        private tss: TaskStateService) {
+        private tss: TaskStateService,
+        private dialog: MatDialog) {
 
         this.msg_service.register(msg => msg.type == "job.msg").subscribe(msg => {
             this.job_state_message_handle(msg);
@@ -190,8 +192,31 @@ export class ProgressBarComponent implements OnInit {
     }
 
     get_task_message_log(uid: string, taskId: string): void {
+        this.dialog.open(TaskLogDialog, { width: '30cm' });
         this.tss.taskLogMessage(uid, taskId).subscribe(message => {
-            console.log(message);
+            let log_dialog = document.getElementById("log_dialog");
+
+            let log_message = document.createElement("p");
+            log_message.appendChild(document.createTextNode(message));
+            log_dialog.appendChild(
+                log_message
+            );
         });
+    }
+}
+
+@Component({
+    selector: 'task-log-dialog',
+    templateUrl: 'task_log_msg_dialog.html'
+})
+export class TaskLogDialog {
+
+    public version: string;
+
+    constructor(
+        public dialogRef: MatDialogRef<TaskLogDialog>) { }
+
+    onCancel(): void {
+        this.dialogRef.close();
     }
 }

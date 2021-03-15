@@ -68,7 +68,13 @@ export class JobHistoryComponent implements OnInit {
     get_task_log_messages(uid: string, taskId: string): void {
         this.dialog.open(TaskLogDialog, { width: '30cm' });
         this.tss.taskLogMessage(uid, taskId).subscribe(message => {
-            console.log(message);
+            let log_dialog = document.getElementById("log_dialog");
+
+            let log_message = document.createElement("p");
+            log_message.appendChild(document.createTextNode(message));
+            log_dialog.appendChild(
+                log_message
+            );
         });
     }
 }
