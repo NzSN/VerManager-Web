@@ -17,3 +17,7 @@
 .uid_field {
     padding: 0em 1em 0em 0em;
 }
+
+.mat-table {
+    width: 100%;
+}
