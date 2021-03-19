@@ -182,13 +182,13 @@ export class TaskStateService {
                 // If there is only part of log reside
                 // on local then need to load rest of log
                 // from master
-                concatMap(msg => (() => {
+                concatMap(msg => {
                     if (msg == null) {
                         return this.load_task_log_from_remote(tid);
                     } else {
                         return from([msg]);
                     }
-                })())
+                })
             );
         } else {
             return this.load_task_log_from_remote(tid);
@@ -290,6 +290,9 @@ export class TaskStateService {
 
         return this.retrieve_log_msg(id).pipe(
             concatMap(msg => {
+                // Update log pos
+                this.log_pos[id] += msg.content.message.msg.length;
+
                 // Only part of log content on local
                 // try to request more content
                 if (msg.content.message.last == 0) {
@@ -303,7 +306,8 @@ export class TaskStateService {
             // Cache the message
             concatMap(msg => {
                 let msg_text = msg.content.message.msg;
-                this.cache(id, msg_text);
+                this.cache(id, msg_text,
+                    msg.content.message.last == 1);
                 return from([msg_text]);
             }),
         );
@@ -314,6 +318,7 @@ export class TaskStateService {
 
         let obsv = this.msg_src.pipe(
             filter(msg => {
+                console.log(msg);
                 let target_id = msg.content.message.uid + "_" +
                     msg.content.message.task;
                 return id == target_id;
@@ -328,7 +333,7 @@ export class TaskStateService {
      *   True: Need to store into IndexedDB
      *   False: No Need to store into IndexedDB
      */
-    private cache(tid: string, data: string): void {
+    private cache(tid: string, data: string, isLast: boolean = false): void {
 
         let exists = tid in this.log_cache;
         if (!exists) {
@@ -338,9 +343,6 @@ export class TaskStateService {
         // Cache update
         this.log_cache[tid] = this.log_cache[tid] + data;
 
-        // Update log pos
-        this.log_pos[tid] += data.length;
-
         // Persistent Store
         if (this.log_cache[tid].length > this.cache_limit || data == "") {
             if (this.log_cache[tid].length == 0) {
@@ -349,7 +351,7 @@ export class TaskStateService {
 
             // Cache length exceed cache limit need to store
             // store into IndexedDB.
-            this.persistent_store(tid, data == "");
+            this.persistent_store(tid, isLast);
 
             // Flush all cache
             this.log_cache[tid] = "";

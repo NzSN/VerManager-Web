@@ -1,5 +1,6 @@
 <h1 mat-dialog-title>Log Message</h1>
 <div mat-dialog-content id="log_dialog">
+  <p *ngFor="let msg of data.dataKey">{{msg}}</p>
 </div>
 <div mat-dialog-actions>
   <button mat-button>Downloads</button>

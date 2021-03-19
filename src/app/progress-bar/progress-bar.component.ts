@@ -4,7 +4,8 @@ import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
 import { TaskStateService } from '../task-state.service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Inject } from '@angular/core';
 
 
 interface Job_flat {
@@ -38,6 +39,7 @@ export class ProgressBarComponent implements OnInit {
     jobSource = JobInfors;
     displayedColumns: string[] = ['uid', 'Name', 'Tasks'];
     dataSource = new MatTableDataSource<Job_flat>();
+    current_open_message: string[] = [];
 
     constructor(
         private msg_service: MessageService,
@@ -192,15 +194,20 @@ export class ProgressBarComponent implements OnInit {
     }
 
     get_task_message_log(uid: string, taskId: string): void {
-        this.dialog.open(TaskLogDialog, { width: '30cm' });
-        this.tss.taskLogMessage(uid, taskId).subscribe(message => {
-            let log_dialog = document.getElementById("log_dialog");
+        // Retrieve task log message.
+        let sub = this.tss.taskLogMessage(uid, taskId).subscribe(message => {
+            this.current_open_message.push(message);
+        });
 
-            let log_message = document.createElement("p");
-            log_message.appendChild(document.createTextNode(message));
-            log_dialog.appendChild(
-                log_message
-            );
+        // Open a dialog to display messages.
+        this.dialog.open(TaskLogDialogProgress, {
+            width: '30cm',
+            data: {
+                dataKey: this.current_open_message
+            }
+        }).afterClosed().subscribe(_ => {
+            sub.unsubscribe();
+            this.current_open_message = [];
         });
     }
 }
@@ -209,12 +216,13 @@ export class ProgressBarComponent implements OnInit {
     selector: 'task-log-dialog',
     templateUrl: 'task_log_msg_dialog.html'
 })
-export class TaskLogDialog {
+export class TaskLogDialogProgress {
 
     public version: string;
 
     constructor(
-        public dialogRef: MatDialogRef<TaskLogDialog>) { }
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        public dialogRef: MatDialogRef<TaskLogDialogProgress>) { }
 
     onCancel(): void {
         this.dialogRef.close();

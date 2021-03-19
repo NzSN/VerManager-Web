@@ -4,7 +4,8 @@ import { Message, QueryEvent } from '../message';
 import { Job, Task } from '../job';
 import { MatTableDataSource } from '@angular/material/table';
 import { TaskStateService } from '../task-state.service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Inject } from '@angular/core';
 
 
 @Component({
@@ -17,6 +18,7 @@ export class JobHistoryComponent implements OnInit {
     history: Job[] = [];
     displayedColumns: string[] = ['uid', 'Name', 'Tasks']
     dataSource = new MatTableDataSource<Job>([]);
+    current_open_message: string[] = [];
 
     constructor(
         private msg_service: MessageService,
@@ -66,15 +68,19 @@ export class JobHistoryComponent implements OnInit {
     }
 
     get_task_log_messages(uid: string, taskId: string): void {
-        this.dialog.open(TaskLogDialog, { width: '30cm' });
-        this.tss.taskLogMessage(uid, taskId).subscribe(message => {
-            let log_dialog = document.getElementById("log_dialog");
+        let sub = this.tss.taskLogMessage(uid, taskId).subscribe(message => {
+            console.log("Message arrived")
+            this.current_open_message.push(message);
+        });
 
-            let log_message = document.createElement("p");
-            log_message.appendChild(document.createTextNode(message));
-            log_dialog.appendChild(
-                log_message
-            );
+        this.dialog.open(TaskLogDialogHistory, {
+            width: '30cm',
+            data: {
+                dataKey: this.current_open_message
+            }
+        }).afterClosed().subscribe(_ => {
+            sub.unsubscribe();
+            this.current_open_message = [];
         });
     }
 }
@@ -84,12 +90,13 @@ export class JobHistoryComponent implements OnInit {
     selector: 'task-log-dialog',
     templateUrl: 'task_log_msg_dialog.html'
 })
-export class TaskLogDialog {
+export class TaskLogDialogHistory {
 
     public version: string;
 
     constructor(
-        public dialogRef: MatDialogRef<TaskLogDialog>) { }
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        public dialogRef: MatDialogRef<TaskLogDialogHistory>) { }
 
     onCancel(): void {
         this.dialogRef.close();

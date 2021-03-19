@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { VerGenComponent } from './ver-gen/ver-gen.component';
 import { VerRegisterComponent, RegisterDialog } from './ver-register/ver-register.component';
-import { ProgressBarComponent } from './progress-bar/progress-bar.component';
+import { ProgressBarComponent, TaskLogDialogProgress } from './progress-bar/progress-bar.component';
 import { AppComponent, NavrowComponent } from './app.component';
 import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -18,7 +18,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
-import { JobHistoryComponent } from './job-history/job-history.component';
+import { JobHistoryComponent, TaskLogDialogHistory } from './job-history/job-history.component';
 import { VerFileExplorerComponent } from './ver-file-explorer/ver-file-explorer.component';
 import { DashComponent } from './dash/dash.component';
 import { MatCardModule } from '@angular/material/card';
@@ -40,7 +40,9 @@ import { APP_BASE_HREF } from '@angular/common';
         JobHistoryComponent,
         VerFileExplorerComponent,
         DashComponent,
-        NavComponent
+        NavComponent,
+        TaskLogDialogProgress,
+        TaskLogDialogHistory,
     ],
     imports: [
         BrowserModule,
